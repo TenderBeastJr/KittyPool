@@ -11,6 +11,7 @@ interface IAavePool {
 
   function withdraw(address asset, uint256 amount, address to) external returns (uint256);
 
+  // this function is expected to hold users accountData
   function getUserAccountData(
     address user
   )

@@ -7,14 +7,6 @@ import { KittyVault, IKittyVault } from "./KittyVault.sol";
 import { ERC20 } from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import { Math } from "@openzeppelin/contracts/utils/math/Math.sol";
 
-/**
- * @title KittyPool
- * @author Shikhar Agarwal
- * @notice This pool facilitates the depositing of collateral and minting of Meowdy coin
- * The pool interact with the respective vault for a token to deposit collateral
- * This pool also maintains the liquidation of bad debt position in order keep the KittyCoin safe.
- */
-
 contract KittyPool {
     using Math for uint256;
 
@@ -47,12 +39,7 @@ contract KittyPool {
         _;
     }
     
-    /**
-     * 
-     * @param _meowntainer The maintainer of protocol, performs executions related to Aaves
-     * @param _euroPriceFeed The chainlink oracle price feed address for EURO
-     * @param aavePool The aave pool address on which collateral is supplied to yield interest
-     */
+
     constructor(address _meowntainer, address _euroPriceFeed, address aavePool) {
         meowntainer = _meowntainer;
         i_kittyCoin = new KittyCoin(address(this));
@@ -60,12 +47,7 @@ contract KittyPool {
         i_aavePool = aavePool;
     }
 
-    /**
-     * @notice Creates a Vault for the token
-     * @dev The vault created maintains all the accounting of the collateral
-     * @param _token address of collateral token for which vault is created
-     * @param _priceFeed price feed for the token (TOKEN / USD)
-     */
+
     function meownufactureKittyVault(address _token, address _priceFeed) external onlyMeowntainer {
         require(tokenToVault[_token] == address(0), KittyPool__TokenAlreadyExistsMeeoooww());
 
@@ -75,49 +57,28 @@ contract KittyPool {
         vaults.push(_kittyVault);
     } 
 
-    /**
-     * @notice Deposits the collateral in the vault
-     * @param _token token address
-     * @param _ameownt amount of token to deposit
-     */
+
     function depawsitMeowllateral(address _token, uint256 _ameownt) external tokenExists(_token) {
         IKittyVault(tokenToVault[_token]).executeDepawsit(msg.sender, _ameownt);
     } 
 
-    /**
-     * @notice Withdraws the collateral from the vault
-     * @param _token token address
-     * @param _ameownt amount of catty nip (shares), corresponding to which collateral is withdrawn
-     */
     function whiskdrawMeowllateral(address _token, uint256 _ameownt) external tokenExists(_token) {
         IKittyVault(tokenToVault[_token]).executeWhiskdrawal(msg.sender, _ameownt);
         require(_hasEnoughMeowllateral(msg.sender), KittyPool__NotEnoughMeowllateralPurrrr());
     }
 
-    /**
-     * @notice Mints the KittyCoin for the user
-     * @param _ameownt amount of KittyCoin to mint
-     */
     function meowintKittyCoin(uint256 _ameownt) external {
         kittyCoinMeownted[msg.sender] += _ameownt;
         i_kittyCoin.mint(msg.sender, _ameownt);
         require(_hasEnoughMeowllateral(msg.sender), KittyPool__NotEnoughMeowllateralPurrrr());
     }
 
-    /**
-     * @notice Burns the KittyCoin for the user
-     * @param _onBehalfOf address of the user for which debt is reduced
-     * @param _ameownt amount of KittyCoin to burn
-     */
+
     function burnKittyCoin(address _onBehalfOf, uint256 _ameownt) external {
         kittyCoinMeownted[_onBehalfOf] -= _ameownt;
         i_kittyCoin.burn(msg.sender, _ameownt);
     }
 
-    /**
-     * @notice Liquidates the bad debt position of the user
-     * @param _user address of the user
-     */
     function purrgeBadPawsition(address _user) external returns (uint256 _totalAmountReceived) {
         require(!(_hasEnoughMeowllateral(_user)), KittyPool__UserIsPurrfect());
         uint256 totalDebt = kittyCoinMeownted[_user];
@@ -156,11 +117,6 @@ contract KittyPool {
         }
     }
 
-    /**
-     * @notice Checks if the user has enough Meowllateral
-     * @param _user address of the user
-     * @return hasEnoughCollateral true if user has enough Meowllateral
-     */
     function _hasEnoughMeowllateral(address _user) internal view returns (bool hasEnoughCollateral) {
         uint256 totalCollateralInEuros = getUserMeowllateralInEuros(_user);
         uint256 collateralRequiredInEuros = kittyCoinMeownted[_user].mulDiv(COLLATERAL_PERCENT, COLLATERAL_PRECISION);
@@ -168,11 +124,6 @@ contract KittyPool {
         return totalCollateralInEuros >= collateralRequiredInEuros;
     }
 
-    /**
-     * @notice Gets the total Meowllateral of the user for all vaults
-     * @param _user address of the user
-     * @return totalUserMeowllateral total Meowllateral of the user
-     */
     function getUserMeowllateralInEuros(address _user) public view returns (uint256 totalUserMeowllateral) {
         uint256 vault_length = vaults.length;
 

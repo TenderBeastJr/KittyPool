@@ -24,8 +24,6 @@ contract KittyVault {
     IAavePool public immutable i_aavePool;
     uint256 public totalMeowllateralInVault;
 
-    /// @notice holds the user's shares of collateral (proportion)
-    /// @dev cattyNip cattyNip I want a mouse, catch me a mouse as fast as I meow
     mapping(address user => uint256 cattyNip) public userToCattyNip;
     uint256 public totalCattyNip;
 
@@ -42,15 +40,6 @@ contract KittyVault {
         _;
     }
 
-    /**
-     * 
-     * @param _token the collateral token of this vault
-     * @param _pool The KittyPool address
-     * @param _priceFeed Price feed for the collateral token of vault
-     * @param _euroPriceFeed Price feed for euro
-     * @param _meowntainer The maintainer of the executions related to Aave supply and withdraw
-     * @param _aavePool The aave pool address on which collateral is supplied to yield interest
-     */
     constructor(address _token, address _pool, address _priceFeed, address _euroPriceFeed, address _meowntainer, address _aavePool) {
         i_token = _token;
         i_pool = _pool;
@@ -60,12 +49,11 @@ contract KittyVault {
         i_aavePool = IAavePool(_aavePool);
     }
 
-    /**
-     * @param _user The user who wants to deposit collateral
-     * @param _ameownt The amount of collateral to deposit
-     */
+    // I expect this function to deposit collateral
     function executeDepawsit(address _user, uint256 _ameownt) external onlyPool {
+        // Here, the variable is assigned a value
         uint256 _totalMeowllateral = getTotalMeowllateral();
+        // This declares a variable and type
         uint256 _cattyNipGenerated;
 
         if (_totalMeowllateral == 0) {
@@ -79,19 +67,27 @@ contract KittyVault {
         totalCattyNip += _cattyNipGenerated;
         totalMeowllateralInVault += _ameownt;
 
+        // executing transfer FROM user
         IERC20(i_token).safeTransferFrom(_user, address(this), _ameownt);
     }
 
-    /**
-     * @param _user The user who wants to withdraw collateral
-     * @param _cattyNipToWithdraw The amount of shares corresponding to collateral to withdraw
-     */
+    // this function is expected to execute withdrawal
     function executeWhiskdrawal(address _user, uint256 _cattyNipToWithdraw) external onlyPool {
+        // this line calculates the amount of collateral to be withdrawn
+        // by executing the mulDiv operation
+        // the calculated amount is then stored to the variable _ameownt as a a uint256 value
         uint256 _ameownt = _cattyNipToWithdraw.mulDiv(getTotalMeowllateral(), totalCattyNip);
+        // this line is a mapping of userToCattyNip linked to users address
+        // the amount of cattyNip specified by _cattyNipToWithdraw
+        // then subtracted from the user's balance in the userToCattyNip mapping
         userToCattyNip[_user] -= _cattyNipToWithdraw;
+        // this line keeps track of cattyNip
+        // after cattyNip is withdrawn
         totalCattyNip -= _cattyNipToWithdraw;
+        // this line displays the amount withdrawn from the totalMeowllateralInVault
         totalMeowllateralInVault -= _ameownt;
 
+        // executing withdrawal amount to user
         IERC20(i_token).safeTransfer(_user, _ameownt);
     }
 
@@ -100,59 +96,97 @@ contract KittyVault {
     ////////// AAVE SUPPLY FOR INTEREST ////////
     //////////////////////////////////////////// 
     
-    /**
-     * @notice Supplies collateral to Aave pool to earn interest
-     * @param _ameowntToSupply The amount of collateral to supply to Aave
-     */
+    // This function is expected to supply collateral to aave
+    // the function call is modified by onlyMeowntainer
     function purrrCollateralToAave(uint256 _ameowntToSupply) external onlyMeowntainer {
+        // Here, the totalMeowllateralInVault is subtracted from the _ameowntToSupply
         totalMeowllateralInVault -= _ameowntToSupply;
+        // This line allows i_aavePool to spend
+        // i_token specified _ameowntToSupply
+        // by using i_aavePool address
         IERC20(i_token).approve(address(i_aavePool), _ameowntToSupply);
+        // Here, the function supplies a specified amount 
+        // of the i_token to the aavePool
+        // onBehalfOf the aavePool
+        // no referral code is applied during this supply operation.
         i_aavePool.supply( { asset: i_token, amount: _ameowntToSupply, onBehalfOf: address(this), referralCode: 0 } );
     }
 
-    /**
-     * @notice Withdraws collateral from Aave pool
-     * @param _ameowntToWhiskdraw The amount of collateral to withdraw from Aave
-     */
+    // This function is expected to withdraw from aave
+    // the function can be called by the modifier onlyMeowntainer 
     function purrrCollateralFromAave(uint256 _ameowntToWhiskdraw) external onlyMeowntainer {
+        // Here, the totalMeowllateralInVault is added to the amount to withdraw
+        // q are you supposed to add the totalMeowllateralInVault to _ameowntToWhiskdraw?
         totalMeowllateralInVault += _ameowntToWhiskdraw;
+
+        // Here, the withdraw function of aavePool is called
+        // with the asset to be withdrawn which is the i_token
+        // the amount to be withdrawn
+        // and the destination of the contract's address as address(this) 
         i_aavePool.withdraw( { asset: i_token, amount: _ameowntToWhiskdraw, to: address(this) } );
     }
 
-    /**
-     * @notice Gets the user's collateral for this vault in euros
-     * @param _user The user for which the collateral is calculated
-     */
+    // This function is expected to get userVaultCollateralInEuros
+    // the result is returned as a uint256 value
     function getUserVaultMeowllateralInEuros(address _user) external view returns (uint256) {
+        // Here the latestRoundData function call gets the latest priceFeed
+        // The second value returned  by the function latestRoundData is assigned to collateralToUsdPrice  
         (, int256 collateralToUsdPrice, , , ) = i_priceFeed.latestRoundData();
+        // Here, the latestRoundData function call gets the latest euroPriceFeed
+        // the second value returned is then assigned to euroPriceFeedAns as a int256 value
         (, int256 euroPriceFeedAns, , ,) = i_euroPriceFeed.latestRoundData();
+        // This line calculates the user's Meowllateral 
+        // by performing mulDiv
+        // converting collateralToUsdPrice to a uint256 value
+        // multiply the price by extra decimals and precisions
+        // assigning the value to collateralAns
         uint256 collateralAns = getUserMeowllateral(_user).mulDiv(uint256(collateralToUsdPrice) * EXTRA_DECIMALS, PRECISION);
+        // Here you return the result of collateralAns
+        // after performing the mulDiv by 
+        // the euroPriceFeedAns value in uint256
+        // multiply the price by extra decimals and precision
+        // the final returned result will then be the user's meowllateral in euros
         return collateralAns.mulDiv(uint256(euroPriceFeedAns) * EXTRA_DECIMALS, PRECISION);
     }
 
-    /**
-     * @notice Gets the user's collateral deposited
-     * @param _user The user for which the collateral is calculated
-     */
+    // This function is expected to get the user collateral
+    // The expected user collateral is returned as a uint256 value
     function getUserMeowllateral(address _user) public view returns (uint256) {
+        // Here the variable is assigned a value
         uint256 totalMeowllateralOfVault = getTotalMeowllateral();
+        // Here is expected to 
+        // Retrieve the user's balance of cattyNip from the userToCattyNip mapping.
+        // Multiply the balance by totalMeowllateralOfVault
+        // Divide the result by total supply of cattyNip
+        // Then return the final value calculated
         return userToCattyNip[_user].mulDiv(totalMeowllateralOfVault, totalCattyNip);
     }
 
-    /**
-     * @notice Gets the total collateral in the vault and on aave
-     */
+    // This function is expected to calculate the sum of the collateral
+    // And return the total collateral in vault
+    // The combined total is returned as a uint256 value.
     function getTotalMeowllateral() public view returns (uint256) {
         return totalMeowllateralInVault + getTotalMeowllateralInAave();
     }
 
-    /**
-     * @notice Gets the total sum of collateral deposited in Aave and the collateral earned by interest from Aave
-     */
     function getTotalMeowllateralInAave() public view returns (uint256) {
-        (uint256 totalCollateralBase, , , , , ) = i_aavePool.getUserAccountData(address(this));
+        // @audit-lead verify what the function does
+        // i expect to fetch user data from aavePool
 
+        // Here, the first value of uint256 totalCollateralBase is being stored.
+        // The commas indicate that the remaining returned values are being ignored.
+        // The line retrieves the total collateral for the current contract in Aave (stored in totalCollateralBase) 
+        // by calling the getUserAccountData function from Aave's pool contract. 
+        (uint256 totalCollateralBase, , , , , ) = i_aavePool.getUserAccountData(address(this));
+        
+        // Here, only the second value of collateralToUsdPrice is captured
+        // the commas indicate that the other values returned by the function are being ignored.
+        // then the function latestRoundData is called on the i_priceFeed contract to get the latest price information.
         (, int256 collateralToUsdPrice, , , ) = i_priceFeed.latestRoundData();
+
+        // Here, is meant to return the result of the function when mulDiv operation is carried out
+        // converting collateralToUsdPrice to uint256 value
+        // multiply the price by extra decimals
         return totalCollateralBase.mulDiv(PRECISION, uint256(collateralToUsdPrice) * EXTRA_DECIMALS);
     }
 }
